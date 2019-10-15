@@ -1,6 +1,6 @@
 import { Vector } from "./vector";
 import { Engine } from "./index";
-import { Ray } from "./ray";
+import { Detection } from "./detectionCircle";
 
 export class Arrow 
 {
@@ -9,14 +9,15 @@ export class Arrow
         this.engine = engine;
 
         this.position = new Vector(Math.floor(Math.random() * engine.width),Math.floor(Math.random() * engine.height));
-        this.direction = Math.floor(Math.random() * 360)
+        this.direction = Math.floor(Math.random() * 360);
         this.updateDirection(this.direction);
+        this.detectionCircle = new Detection(this.position, this.detectionRadius, this.direction, 20);
     }
 
     private engine: Engine;
     private size: number = 7;
-    private speed: number = 100;
-    private detectionRadius = 100;
+    private speed: number = 200;
+    private detectionRadius = 75;
 
     public point1: Array<number>;
     public point2: Array<number>;
@@ -24,9 +25,10 @@ export class Arrow
 
     public position: Vector;
     public direction: number;
+    private dirOffset: number = 0;
     public directionVector: Vector;
 
-    private ray: Ray;
+    public detectionCircle: Detection;
         
 
     draw(ctx: CanvasRenderingContext2D): void 
@@ -49,8 +51,11 @@ export class Arrow
         this.position.x += this.directionVector.x * this.speed * time/1000;
         this.position.y += this.directionVector.y * this.speed * time/1000;
 
-        //this.direction += 1;
-        //this.newDirection(this.direction);
+        this.direction += this.dirOffset;
+        this.updateDirection(this.direction);
+        this.detectionCircle.calcPoints(20, this.direction);
+        this.dirOffset = 0;
+
     }
 
     calcPoint(direction: number): Array<number>
@@ -71,20 +76,18 @@ export class Arrow
         return point 
     }
 
-    CheckObstacle(ctx: CanvasRenderingContext2D): void
-    {
-        let tempPos: Vector = new Vector(this.point1[0], this.point1[1]);
-        this.ray = new Ray(tempPos);
-
-        let distObstacle = this.ray.castRay(ctx, this.detectionRadius, this.directionVector);
-        if (distObstacle < this.detectionRadius && distObstacle != 0) 
-        {
-            this.ray.drawRay(ctx);
-        }
-    }
-
     updateDirection(direction: number): void
     {
+        if (direction >= 360)
+        {
+            this.direction -= 360;
+            direction -= 360;
+        }
+        else if (direction < 0)
+        {
+            this.direction += 360;
+            direction += 360;
+        }
         //Movement
         this.directionVector = new Vector(this.calcDirectionVector(direction)[0], this.calcDirectionVector(direction)[1]);
 
@@ -94,19 +97,53 @@ export class Arrow
         this.point3 = this.calcPoint(direction - 150);
     }
 
-    // checkCollision(otherArrow: Arrow): void
-    // {
-    //     if (otherArrow.position.x < this.position.x + this.detectionRadius && otherArrow.position.x > this.position.x - this.detectionRadius)
-    //     {
-    //         if (otherArrow.position.y < this.position.y + this.detectionRadius && otherArrow.position.y > this.position.y - this.detectionRadius)
-    //         {
-    //             if (otherArrow.position.x > this.position.x && otherArrow.position.y > this.position.y) 
-    //             {
-    //                 //if ()
-    //             }
+    calcWeight(vector: Vector): number
+    {
+        let dist = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y,2));
 
-    //             //else if (otherArrow.position.x > this.position)
-    //         }
-    //     }
-    // }
+        if (dist >= 5) return 50/dist;
+        else return 10;
+    }
+
+    avoidObstacle(obstacleDir: Vector): void 
+    {
+        let weight = this.calcWeight(obstacleDir);
+        let rng = Math.floor(Math.random());
+        if (this.direction < 180) 
+        {
+            if (obstacleDir.x > 0 && obstacleDir.y > 0) this.dirOffset -= 1 * weight;
+            else if (obstacleDir.x > 0 && obstacleDir.y < 0) this.dirOffset += 1 * weight;
+            else if (obstacleDir.x < 0 && obstacleDir.y < 0) this.dirOffset += 1 * weight;
+            else if (obstacleDir.x < 0 && obstacleDir.y > 0) this.dirOffset -= 1 * weight;
+            else 
+            {
+                if (rng == 1) this.dirOffset += 1 * weight;
+                else this.dirOffset -= 1 * weight;
+            }
+        }
+        else if (this.direction >= 180)
+        {
+            if (obstacleDir.x > 0 && obstacleDir.y > 0) this.dirOffset += 1 * weight;
+            else if (obstacleDir.x > 0 && obstacleDir.y < 0) this.dirOffset -= 1 * weight;
+            else if (obstacleDir.x < 0 && obstacleDir.y < 0) this.dirOffset -= 1 * weight;
+            else if (obstacleDir.x < 0 && obstacleDir.y > 0) this.dirOffset += 1 * weight;
+            else 
+            {
+                if (rng == 1) this.dirOffset += 1 * weight;
+                else this.dirOffset -= 1 * weight;
+            }
+        }
+    }
+
+    alignBoid(boidDir: number, weight: number): void 
+    {
+        if (boidDir > this.direction) this.dirOffset += 1 * weight;
+        else this.dirOffset -= 1 * weight;
+    }
+
+    steerBoidCenter(boidCenter: Vector): void
+    {
+        let centerDir = Math.atan(boidCenter.y/boidCenter.x) * 180 / Math.PI;
+        this.alignBoid(centerDir, 2);
+    }
 }

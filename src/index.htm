@@ -1,14 +1,49 @@
 <!doctype html>
 <html lang="en-US">
+
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>Coding Template</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="bundle.css">
 </head>
 
 <body>
-  <canvas id="canvas" height="700" width="1000"></canvas>
-    
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <span class="form-check">
+          <label class="form-check-label">
+            <input type="checkbox" class="form-check-input" id="separation" value="">Separation
+          </label>
+        </span>
+        <span class="form-check">
+          <label class="form-check-label">
+            <input type="checkbox" class="form-check-input" id="alignment" value="">Alignment
+          </label>
+        </span>
+        <span class="form-check">
+          <label class="form-check-label">
+            <input type="checkbox" class="form-check-input" id="cohesion" value="">Cohesion
+          </label>
+        </span>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <canvas id="canvas" width="500" height="500"></canvas>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+  </div>
+
+
   <script src="bundle.js"></script>
 </body>
+
 </html>
