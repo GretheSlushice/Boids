@@ -2,13 +2,11 @@ import { Vector } from "./vector";
 import { Engine } from "./index";
 import { Detection } from "./detectionCircle";
 
-export class Arrow 
-{
-    constructor(engine: Engine) 
-    {
+export class Arrow {
+    constructor(engine: Engine) {
         this.engine = engine;
 
-        this.position = new Vector(Math.floor(Math.random() * engine.width),Math.floor(Math.random() * engine.height));
+        this.position = new Vector(Math.floor(Math.random() * engine.width), Math.floor(Math.random() * engine.height));
         this.direction = Math.floor(Math.random() * 360);
         this.updateDirection(this.direction);
         this.detectionCircle = new Detection(this.position, this.detectionRadius, this.direction, 20);
@@ -17,7 +15,7 @@ export class Arrow
     private engine: Engine;
     private size: number = 7;
     private speed: number = 200;
-    private detectionRadius = 75;
+    private detectionRadius = 100;
 
     public point1: Array<number>;
     public point2: Array<number>;
@@ -29,10 +27,9 @@ export class Arrow
     public directionVector: Vector;
 
     public detectionCircle: Detection;
-        
 
-    draw(ctx: CanvasRenderingContext2D): void 
-    {
+
+    draw(ctx: CanvasRenderingContext2D): void {
         ctx.beginPath();
         ctx.moveTo(this.position.x + this.point1[0], this.position.y + this.point1[1]);
         ctx.lineTo(this.position.x + this.point2[0], this.position.y + this.point2[1]);
@@ -40,16 +37,15 @@ export class Arrow
         ctx.fill();
     }
 
-    update(time: number): void 
-    {
+    update(time: number): void {
         if (this.position.x > this.engine.width) this.position.x -= this.engine.width;
         if (this.position.y > this.engine.height) this.position.y -= this.engine.height;
 
         if (this.position.x < 0) this.position.x += this.engine.width;
         if (this.position.y < 0) this.position.y += this.engine.height;
 
-        this.position.x += this.directionVector.x * this.speed * time/1000;
-        this.position.y += this.directionVector.y * this.speed * time/1000;
+        this.position.x += this.directionVector.x * this.speed * time / 1000;
+        this.position.y += this.directionVector.y * this.speed * time / 1000;
 
         this.direction += this.dirOffset;
         this.updateDirection(this.direction);
@@ -58,33 +54,28 @@ export class Arrow
 
     }
 
-    calcPoint(direction: number): Array<number>
-    {
+    calcPoint(direction: number): Array<number> {
         let point: Array<number>;
         //console.log(direction)
-        point = [Math.cos(direction*Math.PI/180)*this.size, Math.sin(direction*Math.PI/180)*this.size];
-        
+        point = [Math.cos(direction * Math.PI / 180) * this.size, Math.sin(direction * Math.PI / 180) * this.size];
+
         return point
     }
 
-    calcDirectionVector(direction: number): Array<number>
-    {
+    calcDirectionVector(direction: number): Array<number> {
         let point: Array<number>;
         //console.log(direction)
-        point = [Math.cos(direction*Math.PI/180), Math.sin(direction*Math.PI/180)];
-        
-        return point 
+        point = [Math.cos(direction * Math.PI / 180), Math.sin(direction * Math.PI / 180)];
+
+        return point
     }
 
-    updateDirection(direction: number): void
-    {
-        if (direction >= 360)
-        {
+    updateDirection(direction: number): void {
+        if (direction >= 360) {
             this.direction -= 360;
             direction -= 360;
         }
-        else if (direction < 0)
-        {
+        else if (direction < 0) {
             this.direction += 360;
             direction += 360;
         }
@@ -97,53 +88,43 @@ export class Arrow
         this.point3 = this.calcPoint(direction - 150);
     }
 
-    calcWeight(vector: Vector): number
-    {
-        let dist = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y,2));
+    calcWeight(vector: Vector): number {
+        let dist = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
 
-        if (dist >= 5) return 50/dist;
+        if (dist >= 5) return 50 / dist;
         else return 10;
     }
 
-    avoidObstacle(obstacleDir: Vector): void 
-    {
+    avoidObstacle(obstacleDir: Vector): void {
         let weight = this.calcWeight(obstacleDir);
-        let rng = Math.floor(Math.random());
-        if (this.direction < 180) 
-        {
+        if (this.direction < 180) {
             if (obstacleDir.x > 0 && obstacleDir.y > 0) this.dirOffset -= 1 * weight;
             else if (obstacleDir.x > 0 && obstacleDir.y < 0) this.dirOffset += 1 * weight;
             else if (obstacleDir.x < 0 && obstacleDir.y < 0) this.dirOffset += 1 * weight;
             else if (obstacleDir.x < 0 && obstacleDir.y > 0) this.dirOffset -= 1 * weight;
-            else 
-            {
-                if (rng == 1) this.dirOffset += 1 * weight;
-                else this.dirOffset -= 1 * weight;
-            }
         }
-        else if (this.direction >= 180)
-        {
+        else {
             if (obstacleDir.x > 0 && obstacleDir.y > 0) this.dirOffset += 1 * weight;
             else if (obstacleDir.x > 0 && obstacleDir.y < 0) this.dirOffset -= 1 * weight;
             else if (obstacleDir.x < 0 && obstacleDir.y < 0) this.dirOffset -= 1 * weight;
             else if (obstacleDir.x < 0 && obstacleDir.y > 0) this.dirOffset += 1 * weight;
-            else 
-            {
-                if (rng == 1) this.dirOffset += 1 * weight;
-                else this.dirOffset -= 1 * weight;
-            }
         }
     }
 
-    alignBoid(boidDir: number, weight: number): void 
-    {
-        if (boidDir > this.direction) this.dirOffset += 1 * weight;
-        else this.dirOffset -= 1 * weight;
+    alignBoid(boidDir: number, weight: number): void {
+        if (boidDir >= 270 && this.direction < 90) {
+            if (boidDir > this.direction) this.dirOffset -= 1 * weight;
+            else this.dirOffset += 1 * weight;
+        }
+        else {
+            if (boidDir > this.direction) this.dirOffset += 1 * weight;
+            else this.dirOffset -= 1 * weight;
+        }
     }
 
-    steerBoidCenter(boidCenter: Vector): void
-    {
-        let centerDir = Math.atan(boidCenter.y/boidCenter.x) * 180 / Math.PI;
-        this.alignBoid(centerDir, 2);
+    steerBoidCenter(boidCenter: Vector): void {
+        let centerDir = Math.atan(boidCenter.y / boidCenter.x) * 180 / Math.PI;
+        let weight = this.calcWeight(boidCenter);
+        this.alignBoid(centerDir, weight);
     }
 }

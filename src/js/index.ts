@@ -76,10 +76,6 @@ export class Engine
         this.timeZero=this.timeNow;
 
         this.objects.forEach(element => {
-            element.update(time);
-
-            element.draw(this.ctx);
-
             this.objects.forEach(otherElement => {
                 if (element != otherElement) 
                 {
@@ -121,6 +117,9 @@ export class Engine
                 let dirVector = new Vector(averagePos.x - element.position.x, averagePos.y - element.position.y);
                 element.steerBoidCenter(dirVector);
             }
+            element.update(time);
+
+            element.draw(this.ctx);
         });
 
         window.requestAnimationFrame(this.gameLoop.bind(this));
